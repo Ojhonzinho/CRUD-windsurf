@@ -1,0 +1,20 @@
+.container {
+  max-width: 800px;
+}
+
+.table th {
+  background-color: #f8f9fa;
+}
+
+.btn {
+  margin-right: 5px;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.invalid-feedback {
+  display: block;
+}

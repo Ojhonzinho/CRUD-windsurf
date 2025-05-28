@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Receitas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Gerenciador de Receitas</h1>
+        
+        <form id="receitaForm" class="mb-4">
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome da Receita*</label>
+                <input type="text" class="form-control" id="nome" maxlength="100" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="tempoPreparo" class="form-label">Tempo de Preparo (minutos)</label>
+                <input type="number" class="form-control" id="tempoPreparo" min="5" max="300">
+            </div>
+            
+            <div class="mb-3">
+                <label for="dificuldade" class="form-label">Dificuldade</label>
+                <select class="form-select" id="dificuldade">
+                    <option value="Fácil">Fácil</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Difícil">Difícil</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="porcoes" class="form-label">Porções</label>
+                <input type="number" class="form-control" id="porcoes" min="1" max="20">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="btnSalvar">Salvar</button>
+            <button type="button" class="btn btn-warning" id="btnAlterar" disabled>Alterar</button>
+            <button type="button" class="btn btn-danger" id="btnExcluir" disabled>Excluir</button>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tempo de Preparo</th>
+                        <th>Dificuldade</th>
+                        <th>Porções</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="receitasLista">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Armazenamento local das receitas
+        let receitas = JSON.parse(localStorage.getItem('receitas')) || [];
+        let receitaEditando = null;
+
+        // Elementos do DOM
+        const form = document.getElementById('receitaForm');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const btnAlterar = document.getElementById('btnAlterar');
+        const btnExcluir = document.getElementById('btnExcluir');
+        const receitasLista = document.getElementById('receitasLista');
+
+        // Função para salvar receitas no localStorage
+        function salvarLocalStorage() {
+            localStorage.setItem('receitas', JSON.stringify(receitas));
+        }
+
+        // Função para limpar o formulário
+        function limparFormulario() {
+            form.reset();
+            receitaEditando = null;
+            btnSalvar.disabled = false;
+            btnAlterar.disabled = true;
+            btnExcluir.disabled = true;
+        }
+
+        // Função para preencher o formulário com dados da receita
+        function preencherFormulario(receita) {
+            document.getElementById('nome').value = receita.nome;
+            document.getElementById('tempoPreparo').value = receita.tempoPreparo;
+            document.getElementById('dificuldade').value = receita.dificuldade;
+            document.getElementById('porcoes').value = receita.porcoes;
+            
+            btnSalvar.disabled = true;
+            btnAlterar.disabled = false;
+            btnExcluir.disabled = false;
+        }
+
+        // Função para atualizar a lista de receitas na tabela
+        function atualizarLista() {
+            receitasLista.innerHTML = '';
+            
+            receitas.forEach((receita, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${receita.nome}</td>
+                    <td>${receita.tempoPreparo} min</td>
+                    <td>${receita.dificuldade}</td>
+                    <td>${receita.porcoes}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarReceita(${index})">Editar</button>
+                    </td>
+                `;
+                receitasLista.appendChild(tr);
+            });
+        }
+
+        // Função para editar uma receita
+        function editarReceita(index) {
+            receitaEditando = index;
+            preencherFormulario(receitas[index]);
+        }
+
+        // Event Listeners
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!confirm('Deseja salvar esta receita?')) {
+                return;
+            }
+            
+            const receita = {
+                nome: document.getElementById('nome').value,
+                tempoPreparo: parseInt(document.getElementById('tempoPreparo').value),
+                dificuldade: document.getElementById('dificuldade').value,
+                porcoes: parseInt(document.getElementById('porcoes').value)
+            };
+            
+            receitas.push(receita);
+            salvarLocalStorage();
+            limparFormulario();
+            atualizarLista();
+        });
+
+        btnAlterar.addEventListener('click', () => {
+            if (!confirm('Deseja alterar esta receita?')) {
+                return;
+            }
+            
+            const receitaAtualizada = {
+                nome: document.getElementById('nome').value,
+                tempoPreparo: parseInt(document.getElementById('tempoPreparo').value),
+                dificuldade: document.getElementById('dificuldade').value,
+                porcoes: parseInt(document.getElementById('porcoes').value)
+            };
+            
+            receitas[receitaEditando] = receitaAtualizada;
+            salvarLocalStorage();
+            limparFormulario();
+            atualizarLista();
+        });
+
+        btnExcluir.addEventListener('click', () => {
+            if (!confirm('Deseja excluir esta receita?')) {
+                return;
+            }
+            
+            receitas.splice(receitaEditando, 1);
+            salvarLocalStorage();
+            limparFormulario();
+            atualizarLista();
+        });
+
+        // Inicializar a lista de receitas
+        atualizarLista();
+    </script>
+</body>
+</html>
